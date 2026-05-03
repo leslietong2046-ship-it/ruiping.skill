@@ -1,3 +1,17 @@
+---
+name: ruiping
+description: |
+  新闻深度锐评工具，帮你从海量信息中提炼真正有价值的观点和决策建议。
+  触发关键词：锐评、新闻评论、深度分析、事件解读、AI热点、决策建议、热点追踪
+version: 1.0.0
+metadata:
+  openclaw:
+    requires:
+      env: []
+      bins: ["python3"]
+    primaryEnv: ""
+    emoji: "📌"
+---
 # 锐评：你每天看50条新闻，有几条真正帮你做判断了？
 
 **别人追热点，你追观点。**
