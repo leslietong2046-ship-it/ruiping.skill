@@ -2,6 +2,8 @@
 """
 锐评生成器 - 命令行工具
 用法: python demo.py "事件描述" 或 python demo.py --file news.txt
+
+本工具作为格式化框架，深度分析由SKILL.md指导AI完成。
 """
 
 import argparse
@@ -12,21 +14,30 @@ from pathlib import Path
 
 
 class RuiPingGenerator:
-    """锐评生成器类"""
+    """锐评生成器类 - 对齐SKILL.md v3.0标准输出格式"""
     
     def __init__(self):
+        # 完全对齐SKILL.md v3.0的标准输出格式
         self.template = """📌 【锐评】{title}
 
-一句话结论：{conclusion}
+📰 原新闻
+{original_news}
 
-▌为什么重要
-{why_important}
+📎 来源：{source}
 
-▌对谁有影响
-{impact}
+一句话结论：{one_sentence_conclusion}
 
-▌该怎么做
-{action}
+▌这事到底怎么了
+{what_happened}
+
+▌会怎么发展
+{how_it_develops}
+
+▌对谁有影响，影响多大
+{who_affected}
+
+▌你应该怎么做
+{what_to_do}
 
 ▌一句话锐评
 {final_comment}
@@ -34,83 +45,106 @@ class RuiPingGenerator:
     
     def extract_keywords(self, event: str) -> list:
         """从事件描述中提取关键词"""
-        # 移除常见动词和语气词，保留名词和关键概念
-        stopwords = ['的', '了', '是', '在', '又', '很', '非常', '这个', '那个', '最近', '今天', '昨天']
+        stopwords = ['的', '了', '是', '在', '又', '很', '非常', '这个', '那个', '最近', '今天', '昨天', '一下', '什么', '怎么', '为什么']
         words = re.findall(r'[\u4e00-\u9fa5a-zA-Z0-9]+', event)
         return [w for w in words if w not in stopwords and len(w) > 1]
     
     def generate_title(self, event: str) -> str:
-        """生成锐评标题"""
+        """生成锐评标题 - 完整保留事件名称，不截断"""
         keywords = self.extract_keywords(event)
         if len(keywords) >= 2:
-            return f"{keywords[0]}：{keywords[1]}背后的问题"
+            # 不截断，完整保留前两个有意义的关键词
+            return f"{keywords[0]}与{keywords[1]}"
+        elif len(keywords) == 1:
+            return keywords[0]
         return event
     
-    def generate_conclusion(self, event: str) -> str:
+    def generate_original_news(self, event: str) -> str:
+        """生成原新闻摘要"""
+        # 作为格式化框架，这里给出占位提示
+        return f"【由AI根据输入填充】{event}\n（AI将搜索新闻原文，提取核心事实和数据）"
+    
+    def generate_source(self, event: str) -> str:
+        """生成来源信息"""
+        return "【由AI根据搜索结果填充】"
+    
+    def generate_one_sentence_conclusion(self, event: str) -> str:
         """生成一句话结论"""
         keywords = self.extract_keywords(event)
-        if not keywords:
-            return "这事没那么简单。"
-        
-        # 基于关键词生成犀利结论
-        size = len(keywords)
-        if size >= 2:
+        if len(keywords) >= 2:
             return f"表面是{keywords[0]}，实质是{keywords[1]}的博弈。"
-        return f"这事值得关注。"
+        elif len(keywords) == 1:
+            return f"{keywords[0]}这事，需要深入分析。"
+        return "【由AI根据深度分析填充犀利判断】"
     
-    def generate_why_important(self, event: str) -> str:
-        """生成为什么重要"""
-        keywords = self.extract_keywords(event)
-        event_short = event[:20] + "..." if len(event) > 20 else event
-        
-        lines = [
-            f"- {event_short}这件事，不是孤立事件",
-            "- 背后往往有多方利益博弈",
-            "- 处理不好会影响一批人"
-        ]
-        return "\n".join(lines)
+    def generate_what_happened(self, event: str) -> str:
+        """生成'这事到底怎么了'分析"""
+        return """【由AI根据输入填充】
+
+分析框架：
+- 表面新闻背后真正发生的事是什么？
+- 这个政策/事件/变化的本质逻辑是什么？
+- 背后的利益链条是什么？
+"""
     
-    def generate_impact(self, event: str) -> str:
-        """生成对谁有影响"""
-        keywords = self.extract_keywords(event)
-        subject = keywords[0] if keywords else "相关方"
-        
-        lines = [
-            f"- {subject}：直接影响最大，需要立即应对",
-            "- 上下游关联方：间接受波及，观望为主",
-            "- 普通用户/消费者：看热闹但迟早被影响"
-        ]
-        return "\n".join(lines)
+    def generate_how_it_develops(self, event: str) -> str:
+        """生成"会怎么发展" """
+        return f"""【由AI根据输入填充】
+
+分析框架：
+- 短期（1-3个月）会怎样？
+- 中期（半年到1年）可能演化出什么？
+- 最大的变量/变数是什么？
+- 最可能的结果是什么？最坏的结果是什么？
+"""
     
-    def generate_action(self, event: str) -> str:
-        """生成该怎么做"""
-        return """- 第一时间搞清楚来龙去脉，别被标题党带节奏
-- 评估对自己的影响范围和程度
-- 该行动的别拖，该观望的别慌"""
+    def generate_who_affected(self, event: str) -> str:
+        """生成"对谁有影响" """
+        return f"""【由AI根据输入填充】
+
+分析框架：
+- 影响对象1：[具体机制、量级、时间线]
+- 影响对象2：[同上]
+- 影响对象3：[同上]
+
+说明：如果是上市公司，需关联具体业务线、影响多大营收比例
+"""
+    
+    def generate_what_to_do(self, event: str) -> str:
+        """生成"你应该怎么做" """
+        return f"""【由AI根据输入填充】
+
+分析框架：
+- 如果你是投资者：[具体方向、关联标的、时间窗口]
+- 如果你是从业者：[对职业/业务的具体影响，该准备什么]
+- 如果你是普通用户：[对你日常生活/消费的具体影响]
+"""
     
     def generate_final_comment(self, event: str) -> str:
         """生成一句话锐评"""
-        keywords = self.extract_keywords(event)
-        if not keywords:
-            return "有些事，看透不说透，才是好朋友。"
-        
-        return f"{keywords[0] if keywords else '这事'}嘛，从来都是当局者迷，旁观者也不敢说清。"
+        return "【由AI生成金句收尾，不是重复结论，是升华——让人看完想转发的那个点】"
     
     def generate(self, event: str) -> str:
         """生成完整锐评"""
         title = self.generate_title(event)
-        conclusion = self.generate_conclusion(event)
-        why_important = self.generate_why_important(event)
-        impact = self.generate_impact(event)
-        action = self.generate_action(event)
+        original_news = self.generate_original_news(event)
+        source = self.generate_source(event)
+        one_sentence_conclusion = self.generate_one_sentence_conclusion(event)
+        what_happened = self.generate_what_happened(event)
+        how_it_develops = self.generate_how_it_develops(event)
+        who_affected = self.generate_who_affected(event)
+        what_to_do = self.generate_what_to_do(event)
         final_comment = self.generate_final_comment(event)
         
         return self.template.format(
             title=title,
-            conclusion=conclusion,
-            why_important=why_important,
-            impact=impact,
-            action=action,
+            original_news=original_news,
+            source=source,
+            one_sentence_conclusion=one_sentence_conclusion,
+            what_happened=what_happened,
+            how_it_develops=how_it_develops,
+            who_affected=who_affected,
+            what_to_do=what_to_do,
             final_comment=final_comment
         )
 
@@ -144,13 +178,17 @@ def save_output(content: str, output_path: str = None) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='锐评生成器 - 一键生成犀利评论',
+        description='锐评生成器 v3.0 - 对齐SKILL.md标准输出格式',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
   python demo.py "特斯拉又降价了"
   python demo.py --file news.txt
-  python demo.py "OpenAI发布新模型" -o ai_review.md
+  python demo.py "OpenAI发布GPT-5，性能大幅提升" -o ai_review.md
+
+注意:
+  本工具作为格式化框架+事件解析框架使用，
+  深度分析由SKILL.md指导AI根据实际新闻内容完成。
         """
     )
     
